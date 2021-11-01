@@ -18,7 +18,7 @@ from forms import *
 
 from flask_migrate import Migrate
 import datetime
-from .models import Venue, Venue_Genre, Artist, Artist_Genre, Show
+from models import Venue, Venue_Genre, Artist, Artist_Genre, Show
 
 #----------------------------------------------------------------------------#
 # App Config.
@@ -60,37 +60,27 @@ def index():
 def venues():
   # TODO: replace with real venues data.
   #       num_upcoming_shows should be aggregated based on number of upcoming shows per venue.
-  response_data = []
-  try:
-    venue_locations = db.session.query(distinct(Venue.city_id.name), Venue.state_id.name).all()
-    today = datetime.datetime.now()
-
-    for location in venue_locations:
-      city = location[0]
-      state = location[1]
-      locations_data = {"city": city, "state": state, "venues": []}
-      venues = Venue.query.filter_by(city_id=city, state=state).all()
-  # data=[{
-  #   "city": "San Francisco",
-  #   "state": "CA",
-  #   "venues": [{
-  #     "id": 1,
-  #     "name": "The Musical Hop",
-  #     "num_upcoming_shows": 0,
-  #   }, {
-  #     "id": 3,
-  #     "name": "Park Square Live Music & Coffee",
-  #     "num_upcoming_shows": 1,
-  #   }]
-  # }, {
-  #   "city": "New York",
-  #   "state": "NY",
-  #   "venues": [{
-  #     "id": 2,
-  #     "name": "The Dueling Pianos Bar",
-  #     "num_upcoming_shows": 0,
-  #   }]
-  # }]
+  data=[{
+    "city": "San Francisco",
+    "state": "CA",
+    "venues": [{
+      "id": 1,
+      "name": "The Musical Hop",
+      "num_upcoming_shows": 0,
+    }, {
+      "id": 3,
+      "name": "Park Square Live Music & Coffee",
+      "num_upcoming_shows": 1,
+    }]
+  }, {
+    "city": "New York",
+    "state": "NY",
+    "venues": [{
+      "id": 2,
+      "name": "The Dueling Pianos Bar",
+      "num_upcoming_shows": 0,
+    }]
+  }]
   return render_template('pages/venues.html', areas=data);
 
 @app.route('/venues/search', methods=['POST'])
