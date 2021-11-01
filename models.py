@@ -1,109 +1,61 @@
-
+from flask_sqlalchemy import SQLAlchemy
+db = SQLAlchemy()
 #----------------------------------------------------------------------------#
 # Models.
 #----------------------------------------------------------------------------#
 
 
-#city table one to many:
-class City(db.Model):
-  __tablename__='city'
-  id = db.Column(db.Integer, primary_key=True)
-  name = db.Column(db.String(120), nullable=False)
-  venues = db.relationship('Venue',
-                backref='venue_city',
-                lazy=True)
-  artists = db.relationship('Artist',
-                backref='artist_city',
-                lazy=True)
 
-#state table
-class State(db.Model):
-  __tablename__='state'
-  id = db.Column(db.Integer, primary_key=True)
-  name = db.Column(db.String(120), nullable=True)
-  venues = db.relationship('Venue', 
-                backref='venue_state', lazy=True)  
-  artists = db.relationship('Artist',
-                backref='artist_state',
-                lazy=True)
-  #genre table many to many relationship
-  class Genre(db.Model):
-    __tablename__ = 'genre'
-    id = db.Column(db.Integer,primary_key=True)
-    name = db.Column(db.String(120),nullable=True)
-
-#association_table for many to many relationship between Genre and Venue tables
-association_table_venue_genre = db.Table('assoc_venue_genre', 
-    db.Column('venue_id',db.Integer, db.ForeignKey('venue.id'), primary_key=True),
-    db.Column('genre_id',db.Integer, db.ForeignKey('genre.id'), primary_key=True)
-    )
-
-association_table_artist_genre = db.Table('assoc_artist_genre', 
-    db.Column('artist_id',db.Integer, db.ForeignKey('artist.id'), primary_key=True),
-    db.Column('genre_id',db.Integer, db.ForeignKey('genre.id'), primary_key=True)
-    )
+class Venue_Genre(db.Model):
+    __tablename__="venue_genres"
+    id = db.Column(db.Integer, primary_key=True)
+    venue_id = db.Column(db.Integer, db.ForeignKey('venues.id', ondelete="CASCADE"), nullable=False)
+    genre = db.Column(db.String(50), nullable=False)
+    def __repr__(self):
+        return f"<Venue_Genre venue_id:{self.venue_id} genre:{self.genre}>"
 
 class Venue(db.Model):
-    __tablename__ = 'venue'
-
-    id = db.Column(db.Integer, primary_key=True) #ok
-    name = db.Column(db.String, nullable=False) #ok
-    #city
-    city_id = db.Column(db.Integer, db.ForeignKey('city.id'), nullable=False) #ok
-    #state
-    state_id = db.Column(db.Integer, db.ForeignKey('state.id'), nullable=True) #ok
-    address = db.Column(db.String(120), nullable=False) #ok
-    phone = db.Column(db.String(120), nullable=True, default='no number')
-    #genre
-    genres = db.relationship('Genre',
-                          secondary=association_table_venue_genre,
-                          lazy='subquery',
-                          backref=db.backref('venue', lazy=True)) #ok
-    facebook_link = db.Column(db.String(120), nullable=True, default="")
-    image_link = db.Column(
-        db.String(500),
-        nullable=True,
-        default="https://images.unsplash.com/photo-1543900694-133f37abaaa5?ixlib=rb-1.2.1&ixid=eyJhcHBfaWQiOjEyMDd9&auto=format&fit=crop&w=400&q=60",
-        )
-    website_link = db.Column(db.String(120), nullable=True, default="")
-    looking_for_talent = db.Column(db.Boolean, nullable=True, default=False)
-    seeking_description = db.Column(db.String(120), nullable=True)
-    shows = db.relationship('Show', backref='show', lazy=True)
-
-    # TODO: implement any missing fields, as a database migration using Flask-Migrate
-    #ok
-class Artist(db.Model):
-    __tablename__ = 'artist'
-
-    id = db.Column(db.Integer, primary_key=True) #ok
-    name = db.Column(db.String, nullable=False) #ok
-    city_id = db.Column(db.Integer, db.ForeignKey('city.id'), nullable=False)
-    state_id = db.Column(db.Integer, db.ForeignKey('state.id'), nullable=True)
-    phone = db.Column(db.String(120), nullable=True, default='no number')
-    genres = db.relationship('Genre',
-                          secondary=association_table_artist_genre,
-                          lazy='subquery',
-                          backref=db.backref('artist', lazy=True)) #ok
+    __tablename__="venues"
+    id = db.Column(db.Integer, primary_key=True)
+    name = db.Column(db.String, nullable=False)
+    city = db.Column(db.String(120), nullable=False)
+    state = db.Column(db.String(120), nullable=True)
+    address = db.Column(db.String(120),nullable=False)
+    phone = db.Column(db.String(120), nullable=True)
+    genres = db.relationship('Venue_Genre', passive_deletes=True, backref="venue", lazy=True)
+    seeking_talent = db.Column(db.Boolean, nullable=True, default=False)
+    seeking_description = db.Column(db.String, nullable=True)
+    image_link = db.Column(db.String(500),nullable=True, 
+        default="https://martialartsplusinc.com/wp-content/uploads/2017/04/default-image.jpg")
     facebook_link = db.Column(db.String(500), nullable=True, default="")
-    image_link = db.Column(
-        db.String(500),
-        nullable=True,
-        default="https://images.unsplash.com/photo-1543900694-133f37abaaa5?ixlib=rb-1.2.1&ixid=eyJhcHBfaWQiOjEyMDd9&auto=format&fit=crop&w=400&q=60",
-        )
-    website_link = db.Column(db.String(120), nullable=True, default="")
-    looking_for_talent = db.Column(db.Boolean, nullable=True, default=False)
-    seeking_description = db.Column(db.String(120), nullable=True)
-    shows = db.relationship('Show', backref='show', lazy=True)
-    # TODO: implement any missing fields, as a database migration using Flask-Migrate
-
-# TODO Implement Show and Artist models, and complete all model relationships and properties, as a database migration.
+    website = db.Column(db.String(500), nullable=True)
 
 class Show(db.Model):
-    __tablename__ = "show"
+    __tablename__="shows"
     artist_id = db.Column(db.Integer, db.ForeignKey("artist.id"), primary_key=True)
-    venue_id = db.Column(
-        db.Integer, db.ForeignKey("venue.id", ondelete="CASCADE"), primary_key=True
-    )
+    venue_id = db.Column(db.Integer, db.ForeignKey("artists.id", ondelete="CASCADE"), primary_key=True)
     start_time = db.Column(db.DateTime, nullable=False)
 
+class Artist_Genre(db.Model):
+    __tablename__="artist_genre"
+    id = db.Column(db.Integer, primary_key=True)
+    artist_id = db.Column(db.Integer, db.ForeignKey("artists.id"), nullable=False)
+    genre = db.Column(db.String(50), nullable=False)
+    def __repr__(self):
+        return f"<Artist_genre artist_id:{self.artist_id} genre: {self.genre}>"
 
+class Artist(db.Model):
+    __tablename__="artists"
+    id = db.Column(db.Integer, primary_key=True)
+    name = db.Column(db.String(120), nullable = False)
+    city = db.Column(db.String(120), nullable=False)
+    state = db.Column(db.String(120), nullable=True)
+    phone =db.Column(db.String(120), nullable=False)
+    genres = db.relationship("Artist_Genre", backref="artist", lazy=True)
+    image_link = db.Column(db.String(500),nullable=True, 
+        default="https://martialartsplusinc.com/wp-content/uploads/2017/04/default-image.jpg")
+    facebook_link = db.Column(db.String, nullable = True, default ="")
+    venues = db.relationship("Venue", secondary="shows", backref=db.backref("artists", lazy=True))
+    seeking_venue = db.Column(db.Boolean, nullable = True, default = False)
+    seeking_description = db.Column(db.String(), nullable=True, default="")
+    
