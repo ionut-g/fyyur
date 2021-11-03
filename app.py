@@ -22,15 +22,15 @@ import datetime
 from sqlalchemy import distinct
 from sqlalchemy.orm import load_only
 
-from models import *
+from models import db, Venue, Venue_Genre, Artist, Artist_Genre, Show
 #----------------------------------------------------------------------------#
 # App Config.
 #----------------------------------------------------------------------------#
 
 app = Flask(__name__)
-moment = Moment(app)
 app.config.from_object('config')
-db = SQLAlchemy(app)
+moment = Moment(app)
+db.init_app(app)
 migrate = Migrate(app, db)
 
 # #----------------------------------------------------------------------------#
@@ -278,7 +278,7 @@ def create_venue_submission():
     state = request.form.get("state")
     address = request.form.get("address")
     phone = request.form.get("phone")
-    genres = request.form.get("genres")
+    genres = request.form.getlist("genres")
     facebook_link = request.form.get("facebook_link")
 
     new_venue = Venue(
@@ -592,7 +592,7 @@ def edit_venue_submission(venue_id):
     state = request.form.get("state")
     address = request.form.get("address")
     phone = request.form.get("phone")
-    genres = request.form.get("genres")
+    genres = request.form.getlist("genres")
     facebook_link = request.form.get("facebook_link")
 
     venue_to_be_updated = Venue.query.get(venue_id)
